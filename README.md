@@ -1,123 +1,72 @@
-MyApp Observability Stack 📊🚀
-Um projeto completo de monitoramento distribuído usando OpenTelemetry e Jaeger para aplicações .NET.
+# ObservabilityDemo
 
-Tecnologias Utilizadas
-🖥️ .NET 7+ (Application)
+🚀 Demonstração prática de **Observabilidade em aplicações .NET**, com **OpenTelemetry**, **Jaeger** e **Prometheus**, tudo funcionando localmente com o mínimo de configuração.
 
-📡 OpenTelemetry (Instrumentation)
+---
 
-🔍 Jaeger (Tracing)
+## 📌 Objetivo
 
-📊 Prometheus (Metrics - Opcional)
+Este projeto mostra como instrumentar uma aplicação ASP.NET com OpenTelemetry para coletar **traces distribuídos** e **métricas**, enviando esses dados para ferramentas como Jaeger e Prometheus via **OpenTelemetry Collector (otelcol)**.
 
-🐳 Docker (Para Jaeger - Opcional)
+---
 
-📋 Pré-requisitos
-.NET 7+ SDK
+## 🧰 Tecnologias e Ferramentas
 
-Jaeger All-in-One (ou Docker)
+- [.NET](https://dotnet.microsoft.com/)
+- [OpenTelemetry .NET SDK](https://opentelemetry.io/docs/instrumentation/net/)
+- [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
+- [Jaeger](https://www.jaegertracing.io/)
+- [Prometheus (para métricas)](https://prometheus.io/)
 
-OpenTelemetry Collector
+---
 
-⚙️ Configuração
-1️⃣ AppSettings.json
+## 🧱 Estrutura
+
+- `ObservabilityExtensions.cs`: extensão para configurar o OpenTelemetry na aplicação.
+- `otelcol.yaml`: configuração do Collector.
+- `bin/`: diretório com os binários compactados do Jaeger e do Collector.
+- `ObservabilityDemo.sln`: solução principal.
+
+---
+
+## ▶️ Como rodar localmente
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/gustavolim/ObservabilityDemo.git
+cd ObservabilityDemo
+
+
+2. Extraia os binários
+Extraia o conteúdo de Observability.7z (ou semelhante) para um diretório como bin/.
+
+3. Inicie o OpenTelemetry Collector
+bash
+Copiar
+Editar
+cd bin/otelcol
+./otelcol-contrib --config ../../otelcol.yaml
+⚠️ Pode variar conforme o nome/pasta do executável e sistema operacional.
+
+4. Rode a aplicação .NET
+bash
+Copiar
+Editar
+dotnet run --project src/SuaAplicacao.csproj
+5. Acesse os dados
+Jaeger UI: http://localhost:16686
+
+Prometheus: http://localhost:8889/metrics
+
+⚙️ Configurações observáveis
+Configuradas via appsettings.json ou variáveis de ambiente:
+
 json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning",
-      "OpenTelemetry": "Debug"
-    }
-  },
-  "Observability": {
-    "ServiceName": "MyApp.Api",
-    "Environment": "dev",
-    "OtlpEndpoint": "http://localhost:4317"
-  }
+Copiar
+Editar
+"Observability": {
+  "ServiceName": "MyApp",
+  "Environment": "dev",
+  "OtlpEndpoint": "http://localhost:4317"
 }
-2️⃣ OpenTelemetry Collector (otel-final.yaml)
-yaml
-receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: "0.0.0.0:4317"
-
-exporters:
-  otlp/jaeger:
-    endpoint: "localhost:14250"
-    tls:
-      insecure: true
-
-service:
-  pipelines:
-    traces:
-      receivers: [otlp]
-      exporters: [otlp/jaeger]
-3️⃣ Código de Instrumentação (ObservabilityExtensions.cs)
-csharp
-services.AddOpenTelemetry()
-    .WithTracing(builder => 
-    {
-        builder
-            .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                .AddService("MyApp.Api"))
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddOtlpExporter(o => 
-            {
-                o.Endpoint = new Uri("http://localhost:4317");
-                o.Protocol = OtlpExportProtocol.Grpc;
-            });
-    });
-🚀 Como Executar
-1. Inicie o Jaeger
-powershell
-.\jaeger-all-in-one.exe --collector.grpc.tls.enabled=false
-(Ou via Docker: docker run -p 16686:16686 -p 14250:14250 jaegertracing/all-in-one)
-
-2. Inicie o OpenTelemetry Collector
-powershell
-.\otelcol-contrib.exe --config .\otel-final.yaml
-3. Execute sua aplicação .NET
-powershell
-dotnet run
-4. Acesse o Jaeger UI
-🌐 http://localhost:16686
-
-🔍 Troubleshooting
-Se não aparecer traces:
-
-Verifique logs:
-
-powershell
-$env:OTEL_LOG_LEVEL="DEBUG"
-.\otelcol-contrib.exe --config .\otel-final.yaml
-Teste manualmente:
-
-powershell
-curl http://localhost:4317/v1/traces
-Confira o SDK:
-
-csharp
-.AddConsoleExporter() // Adicione para debug
-📂 Estrutura do Projeto
-MyApp/
-├── src/
-│   ├── MyApp.Api/          # Aplicação principal
-│   ├── MyCompany.Observability/  # SDK OpenTelemetry
-├── observability/
-│   ├── otel-final.yaml     # Config Collector
-│   ├── jaeger-all-in-one.exe
-
-
-🎯 Próximos Passos
-Adicionar métricas com Prometheus
-
-Configurar alertas no Jaeger
-
-Implementar logging estruturado
-
-✏️ Contribuições são bem-vindas!
-🔗 Documentação: OpenTelemetry | Jaeger
